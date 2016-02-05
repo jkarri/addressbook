@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 import com.google.common.collect.Lists;
 import com.gumtree.addressbook.domain.Person;
+import com.gumtree.addressbook.exception.InvalidAddressBookException;
 import com.gumtree.addressbook.exception.PersonNotFoundException;
 
 /**
@@ -39,7 +40,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void shouldGetPersons() {
+    public void shouldGetPersons() throws InvalidAddressBookException {
         // Given
         List<Person> persons = Lists.newArrayList();
         given(addressBookProvider.readAddressBook()).willReturn(persons);
@@ -52,7 +53,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void numberOfMalesShouldBeZeroForAnEmptyAddressBook() {
+    public void numberOfMalesShouldBeZeroForAnEmptyAddressBook() throws InvalidAddressBookException {
         // Given
         List<Person> persons = Lists.newArrayList();
         given(addressBookProvider.readAddressBook()).willReturn(persons);
@@ -65,7 +66,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void numberOfMalesShouldBeZeroWhenASingleAddressEntryWithFemaleExists() {
+    public void numberOfMalesShouldBeZeroWhenASingleAddressEntryWithFemaleExists() throws InvalidAddressBookException {
         // Given
         Person malePerson = Mockito.mock(Person.class);
         given(malePerson.getGender()).willReturn(FEMALE);
@@ -80,7 +81,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void numberOfMalesShouldBeOneWhenASingleAddressEntryWithMaleExists() {
+    public void numberOfMalesShouldBeOneWhenASingleAddressEntryWithMaleExists() throws InvalidAddressBookException {
         // Given
         Person malePerson = Mockito.mock(Person.class);
         given(malePerson.getGender()).willReturn(MALE);
@@ -95,7 +96,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void numberOfMalesShouldBeOneWhenTwoAddressEntriesWithMaleAndFemaleEachExist() {
+    public void numberOfMalesShouldBeOneWhenTwoAddressEntriesWithMaleAndFemaleEachExist() throws InvalidAddressBookException {
         // Given a male person
         Person malePerson = Mockito.mock(Person.class);
         given(malePerson.getGender()).willReturn(MALE);
@@ -114,7 +115,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void numberOfMalesShouldBeTwoWhenTwoAddressEntriesWithMaleExist() {
+    public void numberOfMalesShouldBeTwoWhenTwoAddressEntriesWithMaleExist() throws InvalidAddressBookException {
         // Given a male person
         Person malePerson1 = Mockito.mock(Person.class);
         given(malePerson1.getGender()).willReturn(MALE);
@@ -133,7 +134,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void oldestPersonShouldBeAbsentWhenTheAddressBookIsEmpty() {
+    public void oldestPersonShouldBeAbsentWhenTheAddressBookIsEmpty() throws InvalidAddressBookException {
         // Given the address book is empty
         List<Person> persons = Lists.newArrayList();
         given(addressBookProvider.readAddressBook()).willReturn(persons);
@@ -146,7 +147,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void oldestPersonShouldBeTheGivenUserWhenOnlyOneEntryExists() {
+    public void oldestPersonShouldBeTheGivenUserWhenOnlyOneEntryExists() throws InvalidAddressBookException {
         // Given the address book has one person
         Person person = Mockito.mock(Person.class);
         List<Person> persons = Lists.newArrayList(person);
@@ -160,7 +161,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void oldestPersonShouldBeTheOlderOfTheTwoGivenEntries() {
+    public void oldestPersonShouldBeTheOlderOfTheTwoGivenEntries() throws InvalidAddressBookException {
         // Given an old person
         Person old = Mockito.mock(Person.class);
         given(old.getDateOfBirth()).willReturn(LocalDate.now());
@@ -179,7 +180,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void oldestPersonShouldBeTheOldestOfAll() {
+    public void oldestPersonShouldBeTheOldestOfAll() throws InvalidAddressBookException {
         // Given an old person
         Person old = Mockito.mock(Person.class);
         given(old.getDateOfBirth()).willReturn(LocalDate.now());
@@ -201,19 +202,19 @@ public class AddressBookServiceTest {
     }
 
     @Test(expectedExceptions = PersonNotFoundException.class)
-    public void ageDifferenceShouldThrowExceptionIfTheAddressBookIsEmpty() throws PersonNotFoundException {
+    public void ageDifferenceShouldThrowExceptionIfTheAddressBookIsEmpty() throws PersonNotFoundException, InvalidAddressBookException {
         // Given
         List<Person> persons = Lists.newArrayList();
         given(addressBookProvider.readAddressBook()).willReturn(persons);
 
         // When
-        long ageDifference = addressBookService.ageDifferenceInDays("name1", "name2");
+        addressBookService.ageDifferenceInDays("name1", "name2");
 
         //Then expect exception if the user with the given name does not exist
     }
 
     @Test(expectedExceptions = PersonNotFoundException.class)
-    public void ageDifferenceShouldThrowExceptionIfTheUserWithTheGivenNameDoesNotExist() throws PersonNotFoundException {
+    public void ageDifferenceShouldThrowExceptionIfTheUserWithTheGivenNameDoesNotExist() throws PersonNotFoundException, InvalidAddressBookException {
         // Given
         Person person3 = Mockito.mock(Person.class);
         given(person3.getName()).willReturn("name3");
@@ -222,13 +223,13 @@ public class AddressBookServiceTest {
         given(addressBookProvider.readAddressBook()).willReturn(persons);
 
         // When
-        long ageDifference = addressBookService.ageDifferenceInDays("name1", "name2");
+        addressBookService.ageDifferenceInDays("name1", "name2");
 
         //Then expect exception if the user with the given name does not exist
     }
 
     @Test(expectedExceptions = PersonNotFoundException.class)
-    public void ageDifferenceShouldThrowExceptionIfPersonWithOneOfTheNamesDoesNotExist() throws PersonNotFoundException {
+    public void ageDifferenceShouldThrowExceptionIfPersonWithOneOfTheNamesDoesNotExist() throws PersonNotFoundException, InvalidAddressBookException {
         // Given
         Person person2 = Mockito.mock(Person.class);
         given(person2.getName()).willReturn("name2");
@@ -237,13 +238,13 @@ public class AddressBookServiceTest {
         given(addressBookProvider.readAddressBook()).willReturn(persons);
 
         // When
-        long ageDifference = addressBookService.ageDifferenceInDays("name1", "name2");
+        addressBookService.ageDifferenceInDays("name1", "name2");
 
         //Then expect exception if the user with the given name does not exist
     }
 
     @Test
-    public void ageDifferenceShouldZeroWhenBothPersonsAreBornOnTheSameDay() throws PersonNotFoundException {
+    public void ageDifferenceShouldZeroWhenBothPersonsAreBornOnTheSameDay() throws PersonNotFoundException, InvalidAddressBookException {
         // Given
         Person person1 = Mockito.mock(Person.class);
         given(person1.getName()).willReturn("name1");
@@ -264,7 +265,7 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void ageDifferenceShouldOneDayWhenTwoPersonsAreBornOneDayApart() throws PersonNotFoundException {
+    public void ageDifferenceShouldOneDayWhenTwoPersonsAreBornOneDayApart() throws PersonNotFoundException, InvalidAddressBookException {
         // Given
         Person person1 = Mockito.mock(Person.class);
         given(person1.getName()).willReturn("name1");

@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 
 import com.google.common.collect.Maps;
 import com.gumtree.addressbook.domain.Person;
+import com.gumtree.addressbook.exception.InvalidAddressBookException;
 import com.gumtree.addressbook.exception.PersonNotFoundException;
 
 /**
@@ -31,11 +32,11 @@ public class AddressBookService {
         this.addressBookProvider = addressBookProvider;
     }
 
-    public List<Person> getPersons() {
+    public List<Person> getPersons() throws InvalidAddressBookException {
         return addressBookProvider.readAddressBook();
     }
 
-    public long getNumberOfMales() {
+    public long getNumberOfMales() throws InvalidAddressBookException {
         return getPersons().stream().filter(isMale()).count();
     }
 
@@ -43,7 +44,7 @@ public class AddressBookService {
         return person -> person.getGender() == MALE;
     }
 
-    public Optional<Person> oldestPerson() {
+    public Optional<Person> oldestPerson() throws InvalidAddressBookException {
         return getPersons().stream()
                 .sorted(dateComparator())
                 .findFirst();
@@ -53,7 +54,7 @@ public class AddressBookService {
         return (p1, p2) -> p1.getDateOfBirth().compareTo(p2.getDateOfBirth());
     }
 
-    public long ageDifferenceInDays(String name1, String name2) throws PersonNotFoundException {
+    public long ageDifferenceInDays(String name1, String name2) throws PersonNotFoundException, InvalidAddressBookException {
         Map<String, Person> personsByName = getPersonsByName();
         validateEntriesExist(name1, name2, personsByName);
         Person person1 = personsByName.get(name1);
@@ -68,7 +69,7 @@ public class AddressBookService {
         }
     }
 
-    private Map<String, Person> getPersonsByName() {
+    private Map<String, Person> getPersonsByName() throws InvalidAddressBookException {
         return Maps.uniqueIndex(getPersons(), Person::getName);
     }
 }

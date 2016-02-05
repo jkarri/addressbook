@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 import com.google.common.collect.Lists;
 import com.gumtree.addressbook.domain.Person;
+import com.gumtree.addressbook.exception.InvalidAddressBookException;
 
 /**
  * Unit test for {@link AddressBookProvider}.
@@ -31,7 +32,7 @@ public class AddressBookProviderTest {
     }
 
     @Test
-    public void shouldLoadAddressBook() {
+    public void shouldLoadAddressBook() throws InvalidAddressBookException {
         // Given
         AddressBookProvider addressBookProvider = new AddressBookProvider(addressBookLoader, addressBookEntryPersonTransformer);
 
@@ -43,7 +44,7 @@ public class AddressBookProviderTest {
     }
 
     @Test
-    public void shouldTransformAddressEntriesToPersons() {
+    public void shouldTransformAddressEntriesToPersons() throws InvalidAddressBookException {
         // Given
         AddressBookProvider addressBookProvider = new AddressBookProvider(addressBookLoader, addressBookEntryPersonTransformer);
 
