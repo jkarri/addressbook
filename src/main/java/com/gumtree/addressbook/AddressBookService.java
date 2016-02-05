@@ -1,46 +1,29 @@
 package com.gumtree.addressbook;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.gumtree.addressbook.domain.Person;
 
 /**
- * Service class that provides all operations on address book entries.
+ * Service class to enable operations on address book entries.
  */
 public class AddressBookService {
 
-    private List<String> addressEntries;
+    private AddressBookLoader addressBookLoader;
+    private AddressBookEntryPersonTransformer addressBookEntryPersonTransformer;
 
     /**
-     * Default constructor.
-     * @param filePath given file path of the address book
+     * Inject dependencies.
+     * @param addressBookLoader     {@link AddressBookLoader}
      */
-    public AddressBookService(String filePath) throws IOException {
-        Preconditions.checkArgument(filePath != null && !filePath.isEmpty(), "File path cannot be null/empty");
-        this.addressEntries = getAddressBookEntries(filePath);
-
+    public AddressBookService(AddressBookLoader addressBookLoader, AddressBookEntryPersonTransformer addressBookEntryPersonTransformer) {
+        this.addressBookLoader = addressBookLoader;
+        this.addressBookEntryPersonTransformer = addressBookEntryPersonTransformer;
     }
 
-    private List<String> getAddressBookEntries(String filePath) throws IOException {
-        List<String> lines;
-        try (BufferedReader bufferedReader = new BufferedReader(openFile(filePath))) {
-            lines = bufferedReader.lines().collect(Collectors.toList());
-        }
-
-        return lines;
-    }
-
-    private FileReader openFile(String filePath) throws FileNotFoundException {
-        return new FileReader(new File(filePath));
-    }
-
-    public List<String> getAddressEntries() {
-        return addressEntries;
+    public List<Person> readAddressBook() {
+        List<String> addressEntries = addressBookLoader.getAddressEntries();
+        return Lists.transform(addressEntries, entry -> addressBookEntryPersonTransformer.transform(entry));
     }
 }

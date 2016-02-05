@@ -2,63 +2,60 @@ package com.gumtree.addressbook;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.common.collect.Lists;
+import com.gumtree.addressbook.domain.Person;
+
 /**
- * Unit test {@link AddressBookService}.
+ * Unit test for {@link AddressBookService}.
  */
 public class AddressBookServiceTest {
+    @Mock
+    private AddressBookLoader addressBookLoader;
+    @Mock
+    private AddressBookEntryPersonTransformer addressBookEntryPersonTransformer;
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
-    public void shouldThrowExceptionWhenFilePathIsEmpty() throws IOException {
-        // Given
-        String filePath = "";
-
-        // When
-        AddressBookService addressBookService = new AddressBookService(filePath);
-
-        //Then verify that IllegalArgumentException is thrown
-    }
-
-    @Test(expectedExceptions = FileNotFoundException.class)
-    public void shouldThrowExceptionWhenFileDoesNotExist() throws IOException {
-        // Given
-        String filePath = "src/test/resources/MissingAddressBook";
-
-        // When
-        AddressBookService addressBookService = new AddressBookService(filePath);
-
-        //Then verify that FileNotFoundException is thrown
+    @BeforeMethod
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
-    public void addressBookEntriesShouldBeEmptyWhenGivenFileIsEmpty() throws IOException {
+    public void shouldLoadAddressBook() {
         // Given
-        String filePath = "src/test/resources/EmptyAddressBook";
-        AddressBookService addressBookService = new AddressBookService(filePath);
+        AddressBookService addressBookService = new AddressBookService(addressBookLoader, addressBookEntryPersonTransformer);
 
         // When
-        List<String> addressEntries = addressBookService.getAddressEntries();
+        addressBookService.readAddressBook();
 
         //Then
-        assertThat("Address book entries should be zero for an empty file", addressEntries.isEmpty(), is(true));
+        verify(addressBookLoader).getAddressEntries();
     }
 
     @Test
-    public void addressBookEntriesShouldBeNonEmptyWhenGivenFileHasEntries() throws IOException {
+    public void shouldTransformAddressEntriesToPersons() {
         // Given
-        String filePath = "src/test/resources/AddressBook";
-        AddressBookService addressBookService = new AddressBookService(filePath);
+        AddressBookService addressBookService = new AddressBookService(addressBookLoader, addressBookEntryPersonTransformer);
+
+        // Address book entries exist
+        List<String> entries = Lists.newArrayList("entry1", "entry2");
+        given(addressBookLoader.getAddressEntries()).willReturn(entries);
+        given(addressBookEntryPersonTransformer.transform(Mockito.anyString())).willReturn(Mockito.mock(Person.class));
 
         // When
-        List<String> addressEntries = addressBookService.getAddressEntries();
+        List<Person> persons = addressBookService.readAddressBook();
 
         //Then
-        assertThat("Address book should have entries", addressEntries.isEmpty(), is(false));
+        assertThat("persons should be transformed and returned", persons.isEmpty(), is(false));
     }
 }
