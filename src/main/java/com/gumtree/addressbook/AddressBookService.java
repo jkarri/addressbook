@@ -1,5 +1,7 @@
 package com.gumtree.addressbook;
 
+import static com.gumtree.addressbook.domain.Gender.MALE;
+
 import java.util.List;
 
 import com.gumtree.addressbook.domain.Person;
@@ -21,5 +23,9 @@ public class AddressBookService {
 
     public List<Person> getPersons() {
         return addressBookProvider.readAddressBook();
+    }
+
+    public long getNumberOfMales() {
+        return getPersons().stream().filter(person -> person.getGender() == MALE).count();
     }
 }
