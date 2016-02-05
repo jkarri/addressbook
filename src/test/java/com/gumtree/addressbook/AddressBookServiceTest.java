@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 import com.google.common.collect.Lists;
 import com.gumtree.addressbook.domain.Person;
+import com.gumtree.addressbook.exception.PersonNotFoundException;
 
 /**
  * Unit test for {@link AddressBookService}.
@@ -190,7 +191,6 @@ public class AddressBookServiceTest {
         given(oldest.getDateOfBirth()).willReturn(LocalDate.now().minusDays(10));
 
         List<Person> persons = Lists.newArrayList(old, older, oldest);
-
         given(addressBookProvider.readAddressBook()).willReturn(persons);
 
         // When
@@ -198,5 +198,89 @@ public class AddressBookServiceTest {
 
         //Then
         assertThat("oldest should be the oldest of all", actualOldest.get(), is(oldest));
+    }
+
+    @Test(expectedExceptions = PersonNotFoundException.class)
+    public void ageDifferenceShouldThrowExceptionIfTheAddressBookIsEmpty() throws PersonNotFoundException {
+        // Given
+        List<Person> persons = Lists.newArrayList();
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        long ageDifference = addressBookService.ageDifferenceInDays("name1", "name2");
+
+        //Then expect exception if the user with the given name does not exist
+    }
+
+    @Test(expectedExceptions = PersonNotFoundException.class)
+    public void ageDifferenceShouldThrowExceptionIfTheUserWithTheGivenNameDoesNotExist() throws PersonNotFoundException {
+        // Given
+        Person person3 = Mockito.mock(Person.class);
+        given(person3.getName()).willReturn("name3");
+
+        List<Person> persons = Lists.newArrayList(person3);
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        long ageDifference = addressBookService.ageDifferenceInDays("name1", "name2");
+
+        //Then expect exception if the user with the given name does not exist
+    }
+
+    @Test(expectedExceptions = PersonNotFoundException.class)
+    public void ageDifferenceShouldThrowExceptionIfPersonWithOneOfTheNamesDoesNotExist() throws PersonNotFoundException {
+        // Given
+        Person person2 = Mockito.mock(Person.class);
+        given(person2.getName()).willReturn("name2");
+
+        List<Person> persons = Lists.newArrayList(person2);
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        long ageDifference = addressBookService.ageDifferenceInDays("name1", "name2");
+
+        //Then expect exception if the user with the given name does not exist
+    }
+
+    @Test
+    public void ageDifferenceShouldZeroWhenBothPersonsAreBornOnTheSameDay() throws PersonNotFoundException {
+        // Given
+        Person person1 = Mockito.mock(Person.class);
+        given(person1.getName()).willReturn("name1");
+        given(person1.getDateOfBirth()).willReturn(LocalDate.now());
+
+        Person person2 = Mockito.mock(Person.class);
+        given(person2.getName()).willReturn("name2");
+        given(person2.getDateOfBirth()).willReturn(LocalDate.now());
+
+        List<Person> persons = Lists.newArrayList(person1, person2);
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        long ageDifference = addressBookService.ageDifferenceInDays("name1", "name2");
+
+        //Then
+        assertThat(ageDifference, is(0L));
+    }
+
+    @Test
+    public void ageDifferenceShouldOneDayWhenTwoPersonsAreBornOneDayApart() throws PersonNotFoundException {
+        // Given
+        Person person1 = Mockito.mock(Person.class);
+        given(person1.getName()).willReturn("name1");
+        given(person1.getDateOfBirth()).willReturn(LocalDate.now());
+
+        Person person2 = Mockito.mock(Person.class);
+        given(person2.getName()).willReturn("name2");
+        given(person2.getDateOfBirth()).willReturn(LocalDate.now().minusDays(1));
+
+        List<Person> persons = Lists.newArrayList(person1, person2);
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        long ageDifference = addressBookService.ageDifferenceInDays("name1", "name2");
+
+        //Then
+        assertThat(ageDifference, is(1L));
     }
 }
