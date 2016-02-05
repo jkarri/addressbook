@@ -5,6 +5,7 @@ import static java.text.MessageFormat.format;
 
 import static com.gumtree.addressbook.domain.Gender.MALE;
 
+import java.io.IOException;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
@@ -16,6 +17,7 @@ import com.google.common.collect.Maps;
 import com.gumtree.addressbook.domain.Person;
 import com.gumtree.addressbook.exception.InvalidAddressBookException;
 import com.gumtree.addressbook.exception.PersonNotFoundException;
+import com.gumtree.addressbook.validator.AddressBookEntryValidator;
 
 /**
  * Service class to enable operations on address book entries.
@@ -26,9 +28,9 @@ public class AddressBookService {
 
     /**
      * Inject dependencies.
-     * @param addressBookLoader     {@link AddressBookLoader}
+     * @param addressBookProvider     {@link AddressBookProvider}
      */
-    public AddressBookService(AddressBookProvider addressBookProvider, AddressBookLoader addressBookLoader, AddressBookEntryPersonTransformer addressBookEntryPersonTransformer) {
+    public AddressBookService(AddressBookProvider addressBookProvider) {
         this.addressBookProvider = addressBookProvider;
     }
 
@@ -71,5 +73,18 @@ public class AddressBookService {
 
     private Map<String, Person> getPersonsByName() throws InvalidAddressBookException {
         return Maps.uniqueIndex(getPersons(), Person::getName);
+    }
+
+    public static void main(String[] args) throws IOException, InvalidAddressBookException, PersonNotFoundException {
+        AddressBookEntryValidator addressBookEntryValidator = new AddressBookEntryValidator();
+        AddressBookLoader addressBookLoader = new AddressBookLoader("src/main/resources/AddressBook", addressBookEntryValidator);
+        AddressBookEntryPersonTransformer addressBookEntryPersonTransformer = new AddressBookEntryPersonTransformer();
+        AddressBookProvider addressBookProvider = new AddressBookProvider(addressBookLoader, addressBookEntryPersonTransformer);
+        AddressBookService addressBookService = new AddressBookService(addressBookProvider);
+
+        System.out.println("Number of males are : " + addressBookService.getNumberOfMales());
+        System.out.println("Oldest person is : " + addressBookService.oldestPerson());
+        System.out.println("How many days is Bill Older than Paul : " + addressBookService.ageDifferenceInDays("Bill McKnight", "Paul Robinson"));
+
     }
 }
