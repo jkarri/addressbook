@@ -2,7 +2,6 @@ package com.gumtree.addressbook;
 
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import com.gumtree.addressbook.domain.Person;
 
 /**
@@ -10,20 +9,17 @@ import com.gumtree.addressbook.domain.Person;
  */
 public class AddressBookService {
 
-    private AddressBookLoader addressBookLoader;
-    private AddressBookEntryPersonTransformer addressBookEntryPersonTransformer;
+    private AddressBookProvider addressBookProvider;
 
     /**
      * Inject dependencies.
      * @param addressBookLoader     {@link AddressBookLoader}
      */
-    public AddressBookService(AddressBookLoader addressBookLoader, AddressBookEntryPersonTransformer addressBookEntryPersonTransformer) {
-        this.addressBookLoader = addressBookLoader;
-        this.addressBookEntryPersonTransformer = addressBookEntryPersonTransformer;
+    public AddressBookService(AddressBookProvider addressBookProvider, AddressBookLoader addressBookLoader, AddressBookEntryPersonTransformer addressBookEntryPersonTransformer) {
+        this.addressBookProvider = addressBookProvider;
     }
 
-    public List<Person> readAddressBook() {
-        List<String> addressEntries = addressBookLoader.getAddressEntries();
-        return Lists.transform(addressEntries, entry -> addressBookEntryPersonTransformer.transform(entry));
+    public List<Person> getPersons() {
+        return addressBookProvider.readAddressBook();
     }
 }

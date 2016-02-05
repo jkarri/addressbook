@@ -2,13 +2,12 @@ package com.gumtree.addressbook;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
+import org.mockito.BDDMockito;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -20,10 +19,12 @@ import com.gumtree.addressbook.domain.Person;
  * Unit test for {@link AddressBookService}.
  */
 public class AddressBookServiceTest {
+
     @Mock
-    private AddressBookLoader addressBookLoader;
-    @Mock
-    private AddressBookEntryPersonTransformer addressBookEntryPersonTransformer;
+    private AddressBookProvider addressBookProvider;
+
+    @InjectMocks
+    private AddressBookService addressBookService;
 
     @BeforeMethod
     public void setUp() {
@@ -31,31 +32,15 @@ public class AddressBookServiceTest {
     }
 
     @Test
-    public void shouldLoadAddressBook() {
+    public void shouldGetPersons() {
         // Given
-        AddressBookService addressBookService = new AddressBookService(addressBookLoader, addressBookEntryPersonTransformer);
+        List<Person> persons = Lists.newArrayList();
+        BDDMockito.given(addressBookProvider.readAddressBook()).willReturn(persons);
 
         // When
-        addressBookService.readAddressBook();
+        List<Person> actualPersons = addressBookService.getPersons();
 
         //Then
-        verify(addressBookLoader).getAddressEntries();
-    }
-
-    @Test
-    public void shouldTransformAddressEntriesToPersons() {
-        // Given
-        AddressBookService addressBookService = new AddressBookService(addressBookLoader, addressBookEntryPersonTransformer);
-
-        // Address book entries exist
-        List<String> entries = Lists.newArrayList("entry1", "entry2");
-        given(addressBookLoader.getAddressEntries()).willReturn(entries);
-        given(addressBookEntryPersonTransformer.transform(Mockito.anyString())).willReturn(Mockito.mock(Person.class));
-
-        // When
-        List<Person> persons = addressBookService.readAddressBook();
-
-        //Then
-        assertThat("persons should be transformed and returned", persons.isEmpty(), is(false));
+        assertThat("should read the persons from address book provider", actualPersons, is(persons));
     }
 }
