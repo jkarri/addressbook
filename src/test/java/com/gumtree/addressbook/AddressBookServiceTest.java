@@ -7,7 +7,9 @@ import static org.mockito.BDDMockito.given;
 import static com.gumtree.addressbook.domain.Gender.FEMALE;
 import static com.gumtree.addressbook.domain.Gender.MALE;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -64,9 +66,9 @@ public class AddressBookServiceTest {
     @Test
     public void numberOfMalesShouldBeZeroWhenASingleAddressEntryWithFemaleExists() {
         // Given
-        Person maleUser = Mockito.mock(Person.class);
-        given(maleUser.getGender()).willReturn(FEMALE);
-        List<Person> persons = Lists.newArrayList(maleUser);
+        Person malePerson = Mockito.mock(Person.class);
+        given(malePerson.getGender()).willReturn(FEMALE);
+        List<Person> persons = Lists.newArrayList(malePerson);
         given(addressBookProvider.readAddressBook()).willReturn(persons);
 
         // When
@@ -79,9 +81,9 @@ public class AddressBookServiceTest {
     @Test
     public void numberOfMalesShouldBeOneWhenASingleAddressEntryWithMaleExists() {
         // Given
-        Person maleUser = Mockito.mock(Person.class);
-        given(maleUser.getGender()).willReturn(MALE);
-        List<Person> persons = Lists.newArrayList(maleUser);
+        Person malePerson = Mockito.mock(Person.class);
+        given(malePerson.getGender()).willReturn(MALE);
+        List<Person> persons = Lists.newArrayList(malePerson);
         given(addressBookProvider.readAddressBook()).willReturn(persons);
 
         // When
@@ -127,5 +129,74 @@ public class AddressBookServiceTest {
 
         //Then
         assertThat("number of males should be two for an address book with two males", numberOfMales, is(2L));
+    }
+
+    @Test
+    public void oldestPersonShouldBeAbsentWhenTheAddressBookIsEmpty() {
+        // Given the address book is empty
+        List<Person> persons = Lists.newArrayList();
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        Optional<Person> oldest = addressBookService.oldestPerson();
+
+        //Then
+        assertThat("oldest person should be the one entry in the address book", oldest.isPresent(), is(false));
+    }
+
+    @Test
+    public void oldestPersonShouldBeTheGivenUserWhenOnlyOneEntryExists() {
+        // Given the address book has one person
+        Person person = Mockito.mock(Person.class);
+        List<Person> persons = Lists.newArrayList(person);
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        Optional<Person> oldest = addressBookService.oldestPerson();
+
+        //Then
+        assertThat("oldest person should be the one entry in the address book", oldest.get(), is(person));
+    }
+
+    @Test
+    public void oldestPersonShouldBeTheOlderOfTheTwoGivenEntries() {
+        // Given an old person
+        Person old = Mockito.mock(Person.class);
+        given(old.getDateOfBirth()).willReturn(LocalDate.now());
+        // And an older person
+        Person older = Mockito.mock(Person.class);
+        given(older.getDateOfBirth()).willReturn(LocalDate.now().minusDays(2));
+        List<Person> persons = Lists.newArrayList(old, older);
+
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        Optional<Person> oldest = addressBookService.oldestPerson();
+
+        //Then
+        assertThat("oldest should be the older of the two", oldest.get(), is(older));
+    }
+
+    @Test
+    public void oldestPersonShouldBeTheOldestOfAll() {
+        // Given an old person
+        Person old = Mockito.mock(Person.class);
+        given(old.getDateOfBirth()).willReturn(LocalDate.now());
+        // And and older person
+        Person older = Mockito.mock(Person.class);
+        given(older.getDateOfBirth()).willReturn(LocalDate.now().minusDays(2));
+        // And and older person
+        Person oldest = Mockito.mock(Person.class);
+        given(oldest.getDateOfBirth()).willReturn(LocalDate.now().minusDays(10));
+
+        List<Person> persons = Lists.newArrayList(old, older, oldest);
+
+        given(addressBookProvider.readAddressBook()).willReturn(persons);
+
+        // When
+        Optional<Person> actualOldest = addressBookService.oldestPerson();
+
+        //Then
+        assertThat("oldest should be the oldest of all", actualOldest.get(), is(oldest));
     }
 }
