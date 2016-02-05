@@ -28,6 +28,7 @@ public class AddressBookLoaderTest {
     @BeforeMethod
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        given(addressBookEntryValidator.validate(Mockito.anyString())).willReturn(true);
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)
